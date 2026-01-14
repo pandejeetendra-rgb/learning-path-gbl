@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Path – Internet Fundamentals (GBL)</title>
+
+<style>
+  body{
+    margin:0;
+    font-family: system-ui, Arial, sans-serif;
+    background:#f4f6f8;
+    color:#222;
+    display:flex;
+    justify-content:center;
+  }
+
+  .app{
+    max-width:420px;
+    width:100%;
+    padding:16px;
+  }
+
+  h1{
+    font-size:20px;
+    text-align:center;
+    margin-bottom:10px;
+  }
+
+  .path{
+    display:flex;
+    justify-content:space-between;
+    margin:20px 0;
+  }
+
+  .node{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background:#ddd;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:600;
+  }
+
+  .node.active{ background:#4f46e5; color:#fff; }
+  .node.done{ background:#16a34a; color:#fff; }
+
+  .card{
+    background:#fff;
+    border-radius:10px;
+    padding:16px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+  }
+
+  .question{
+    font-weight:600;
+    margin-bottom:12px;
+  }
+
+  .option{
+    border:1px solid #ccc;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:8px;
+    cursor:pointer;
+  }
+
+  .option:hover{ background:#f1f5f9; }
+
+  .option.selected{
+    border-color:#4f46e5;
+    background:#eef2ff;
+  }
+
+  button{
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    cursor:pointer;
+    background:#4f46e5;
+    color:#fff;
+    margin-top:10px;
+  }
+
+  button.secondary{
+    background:#64748b;
+  }
+
+  .feedback{
+    margin-top:10px;
+    font-size:14px;
+  }
+
+  .correct{ color:#15803d; }
+  .wrong{ color:#b91c1c; }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<h1>Learning Path: Internet Fundamentals</h1>
+
+<div class="path" id="path"></div>
+
+<div class="card">
+  <div class="question" id="question"></div>
+  <div id="options"></div>
+  <div class="feedback" id="feedback"></div>
+  <button id="actionBtn">Submit</button>
+</div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q:"What was the original purpose of ARPANET?",
+    options:[
+      "Entertainment networking",
+      "Robust communication during failures",
+      "Commercial internet access",
+      "Social media sharing"
+    ],
+    answer:1,
+    feedback:"ARPANET was designed so communication could continue even if parts of the network failed."
+  },
+  {
+    q:"Why does the Internet continue working even if one path fails?",
+    options:[
+      "Because data is duplicated",
+      "Because of central control",
+      "Because of redundant routing paths",
+      "Because servers never fail"
+    ],
+    answer:2,
+    feedback:"The Internet uses multiple routing paths so data can be rerouted if one link fails."
+  },
+  {
+    q:"Which statement best describes the Internet and the World Wide Web?",
+    options:[
+      "They are the same",
+      "The Internet is part of the Web",
+      "The Web is a service on the Internet",
+      "They work independently"
+    ],
+    answer:2,
+    feedback:"The World Wide Web is one of many services that run on the Internet."
+  },
+  {
+    q:"What does the phrase 'network of networks' mean?",
+    options:[
+      "Only wireless networks",
+      "Multiple independent networks interconnected",
+      "One large central network",
+      "A private corporate network"
+    ],
+    answer:1,
+    feedback:"The Internet connects many independent networks into one global system."
+  },
+  {
+    q:"Which part of a URL indicates the communication protocol?",
+    options:[
+      "Domain name",
+      "Path",
+      "Protocol prefix (http/https)",
+      "File name"
+    ],
+    answer:2,
+    feedback:"The protocol part tells how data should be transferred."
+  },
+  {
+    q:"Which protocol is mainly used for sending emails?",
+    options:[
+      "HTTP",
+      "FTP",
+      "SMTP",
+      "Telnet"
+    ],
+    answer:2,
+    feedback:"SMTP is used to send emails between servers."
+  },
+  {
+    q:"What is the main function of DNS?",
+    options:[
+      "Encrypt data",
+      "Translate domain names to IP addresses",
+      "Store web pages",
+      "Block malicious traffic"
+    ],
+    answer:1,
+    feedback:"DNS helps computers find IP addresses using human-readable names."
+  },
+  {
+    q:"What is the purpose of an IP address?",
+    options:[
+      "To identify devices uniquely",
+      "To store data",
+      "To encrypt traffic",
+      "To host websites"
+    ],
+    answer:0,
+    feedback:"IP addresses uniquely identify devices on a network."
+  },
+  {
+    q:"Why was IPv6 introduced?",
+    options:[
+      "Better speed",
+      "More security only",
+      "IPv4 address exhaustion",
+      "Simpler URLs"
+    ],
+    answer:2,
+    feedback:"IPv6 provides a much larger address space than IPv4."
+  },
+  {
+    q:"What is the primary role of an Internet Service Provider?",
+    options:[
+      "Create websites",
+      "Provide Internet access",
+      "Control Internet traffic globally",
+      "Design protocols"
+    ],
+    answer:1,
+    feedback:"ISPs connect users and organizations to the Internet."
+  }
+];
+
+let step=0;
+let selected=null;
+
+const pathDiv=document.getElementById("path");
+const qDiv=document.getElementById("question");
+const optDiv=document.getElementById("options");
+const feedbackDiv=document.getElementById("feedback");
+const btn=document.getElementById("actionBtn");
+
+function renderPath(){
+  pathDiv.innerHTML="";
+  questions.forEach((_,i)=>{
+    const n=document.createElement("div");
+    n.className="node"+(i<step?" done":i===step?" active":"");
+    n.textContent=i+1;
+    pathDiv.appendChild(n);
+  });
+}
+
+function renderQuestion(){
+  const q=questions[step];
+  qDiv.textContent=q.q;
+  optDiv.innerHTML="";
+  feedbackDiv.textContent="";
+  selected=null;
+  btn.textContent="Submit";
+  q.options.forEach((o,i)=>{
+    const d=document.createElement("div");
+    d.className="option";
+    d.textContent=o;
+    d.onclick=()=>{
+      document.querySelectorAll(".option").forEach(x=>x.classList.remove("selected"));
+      d.classList.add("selected");
+      selected=i;
+    };
+    optDiv.appendChild(d);
+  });
+}
+
+btn.onclick=()=>{
+  if(selected===null) return;
+  const q=questions[step];
+  if(selected===q.answer){
+    feedbackDiv.textContent="Correct. "+q.feedback;
+    feedbackDiv.className="feedback correct";
+    btn.textContent="Continue";
+    btn.onclick=()=>{
+      step++;
+      if(step<questions.length){
+        btn.onclick=submitHandler;
+        renderPath();
+        renderQuestion();
+      }else{
+        qDiv.textContent="You have completed the learning path.";
+        optDiv.innerHTML="";
+        feedbackDiv.textContent="Learning progressed through understanding. This is Game-Based Learning.";
+        btn.style.display="none";
+      }
+    };
+  }else{
+    feedbackDiv.textContent="Not quite. "+q.feedback;
+    feedbackDiv.className="feedback wrong";
+  }
+};
+
+const submitHandler=btn.onclick;
+
+renderPath();
+renderQuestion();
+</script>
+</body>
+</html>
