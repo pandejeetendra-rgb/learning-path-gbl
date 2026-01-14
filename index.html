@@ -1,304 +1,699 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learning Path – Internet Fundamentals (GBL)</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Build the Route (GBL) — Internet Fundamentals</title>
 <style>
+  :root{
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --text:#101828;
+    --muted:#667085;
+    --line:#d0d5dd;
+    --primary:#4f46e5;
+    --ok:#16a34a;
+    --bad:#b42318;
+    --warn:#b54708;
+    --shadow: 0 10px 28px rgba(16,24,40,.12);
+    --radius: 16px;
+  }
+  *{box-sizing:border-box}
   body{
     margin:0;
-    font-family: system-ui, Arial, sans-serif;
-    background:#f4f6f8;
-    color:#222;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--text);
     display:flex;
     justify-content:center;
   }
-
   .app{
-    max-width:420px;
-    width:100%;
-    padding:16px;
+    width:min(980px, 100%);
+    padding:14px;
+    display:grid;
+    gap:14px;
+    grid-template-columns: 1.1fr .9fr;
+    align-items:start;
+  }
+  @media (max-width: 860px){
+    .app{ grid-template-columns: 1fr; }
   }
 
-  h1{
-    font-size:20px;
-    text-align:center;
-    margin-bottom:10px;
-  }
-
-  .path{
+  .topbar{
+    grid-column: 1 / -1;
+    background:var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding:14px 14px 12px;
     display:flex;
+    gap:12px;
+    align-items:flex-start;
     justify-content:space-between;
-    margin:20px 0;
+    flex-wrap:wrap;
   }
-
-  .node{
-    width:28px;
-    height:28px;
-    border-radius:50%;
-    background:#ddd;
+  .title{
     display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .title h1{
+    margin:0;
+    font-size:18px;
+    line-height:1.2;
+  }
+  .title p{
+    margin:0;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+  }
+  .pill{
+    display:inline-flex;
+    gap:8px;
     align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:600;
-  }
-
-  .node.active{ background:#4f46e5; color:#fff; }
-  .node.done{ background:#16a34a; color:#fff; }
-
-  .card{
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    color:var(--muted);
+    font-size:13px;
     background:#fff;
-    border-radius:10px;
-    padding:16px;
-    box-shadow:0 6px 18px rgba(0,0,0,.08);
+  }
+  .pill b{ color:var(--text); }
+
+  .board, .panel{
+    background:var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .board{
+    padding:12px;
   }
 
+  .legend{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:8px 0 0;
+    padding:0 4px;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .dot{
+    width:10px;height:10px;border-radius:99px;display:inline-block;vertical-align:middle;margin-right:6px;
+    border:1px solid var(--line);
+    background:#fff;
+  }
+  .dot.active{ background: var(--primary); border-color: var(--primary); }
+  .dot.done{ background: var(--ok); border-color: var(--ok); }
+
+  .panel{
+    padding:14px;
+  }
+  .stepLine{
+    color:var(--muted);
+    font-size:13px;
+    margin:0 0 8px;
+  }
   .question{
-    font-weight:600;
-    margin-bottom:12px;
-  }
-
-  .option{
-    border:1px solid #ccc;
-    border-radius:8px;
-    padding:10px;
-    margin-bottom:8px;
-    cursor:pointer;
-  }
-
-  .option:hover{ background:#f1f5f9; }
-
-  .option.selected{
-    border-color:#4f46e5;
-    background:#eef2ff;
-  }
-
-  button{
-    width:100%;
-    padding:10px;
-    border:none;
-    border-radius:8px;
+    margin:0 0 10px;
+    font-weight:650;
     font-size:15px;
+    line-height:1.35;
+  }
+  .options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .opt{
+    border:1px solid var(--line);
+    border-radius: 12px;
+    padding:10px 10px;
     cursor:pointer;
-    background:#4f46e5;
-    color:#fff;
-    margin-top:10px;
-  }
-
-  button.secondary{
-    background:#64748b;
-  }
-
-  .feedback{
-    margin-top:10px;
+    background:#fff;
+    transition:.15s ease;
     font-size:14px;
   }
+  .opt:hover{ transform: translateY(-1px); }
+  .opt.sel{
+    border-color: var(--primary);
+    background: #eef2ff;
+  }
+  .row{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+  }
+  button{
+    width:100%;
+    border:none;
+    border-radius: 12px;
+    padding:11px 12px;
+    cursor:pointer;
+    font-weight:650;
+    font-size:14px;
+    background: var(--primary);
+    color:#fff;
+  }
+  button.secondary{
+    background:#475467;
+  }
+  button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+  }
+  .feedback{
+    margin-top:10px;
+    font-size:13px;
+    line-height:1.4;
+    padding:10px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:#fbfcfe;
+  }
+  .feedback.ok{ border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.07); }
+  .feedback.bad{ border-color: rgba(180,35,24,.35); background: rgba(180,35,24,.06); }
+  .hint{
+    margin-top:8px;
+    color:#7a5c00;
+    font-size:12.5px;
+  }
 
-  .correct{ color:#15803d; }
-  .wrong{ color:#b91c1c; }
+  /* SVG styles */
+  svg{ width:100%; height:auto; display:block; }
+  .edge{
+    stroke: var(--line);
+    stroke-width: 6;
+    stroke-linecap: round;
+    fill:none;
+  }
+  .edge.on{
+    stroke: var(--ok);
+  }
+  .nodeCircle{
+    fill:#fff;
+    stroke: var(--line);
+    stroke-width: 3;
+  }
+  .nodeCircle.active{
+    stroke: var(--primary);
+    stroke-width: 4;
+  }
+  .nodeCircle.done{
+    fill: rgba(22,163,74,.12);
+    stroke: var(--ok);
+    stroke-width: 4;
+  }
+  .nodeLabel{
+    font-size: 12.5px;
+    fill: var(--muted);
+    font-weight: 650;
+  }
+  .nodeSub{
+    font-size: 11px;
+    fill: var(--muted);
+  }
+
+  .packet{
+    filter: drop-shadow(0 6px 10px rgba(16,24,40,.18));
+  }
 </style>
 </head>
-
 <body>
-<div class="app">
+  <div class="app">
+    <div class="topbar">
+      <div class="title">
+        <h1>Build the Internet Route (GBL Demo)</h1>
+        <p>
+          Answer correctly to activate each network component. The route completes only through understanding.
+          No timer. No penalties. Retry allowed.
+        </p>
+      </div>
+      <div class="pill" id="statusPill"><b>Route:</b> 0/6 nodes activated</div>
+    </div>
 
-<h1>Learning Path: Internet Fundamentals</h1>
+    <div class="board">
+      <!-- Network Map -->
+      <svg viewBox="0 0 900 520" aria-label="Internet route board">
+        <!-- edges -->
+        <path id="e0" class="edge" d="M120,260 C210,260 220,260 300,260" />
+        <path id="e1" class="edge" d="M300,260 C380,220 420,200 480,190" />
+        <path id="e2" class="edge" d="M480,190 C560,170 610,170 690,190" />
+        <path id="e3" class="edge" d="M690,190 C740,210 770,230 800,260" />
+        <path id="e4" class="edge" d="M480,190 C520,260 570,300 650,320" />
+        <path id="e5" class="edge" d="M650,320 C710,320 750,300 800,260" />
 
-<div class="path" id="path"></div>
+        <!-- nodes -->
+        <g>
+          <circle id="n0" class="nodeCircle" cx="120" cy="260" r="44"></circle>
+          <text class="nodeLabel" x="120" y="255" text-anchor="middle">User</text>
+          <text class="nodeSub" x="120" y="275" text-anchor="middle">Device</text>
+        </g>
 
-<div class="card">
-  <div class="question" id="question"></div>
-  <div id="options"></div>
-  <div class="feedback" id="feedback"></div>
-  <button id="actionBtn">Submit</button>
-</div>
+        <g>
+          <circle id="n1" class="nodeCircle" cx="300" cy="260" r="44"></circle>
+          <text class="nodeLabel" x="300" y="255" text-anchor="middle">ISP</text>
+          <text class="nodeSub" x="300" y="275" text-anchor="middle">Access</text>
+        </g>
 
-</div>
+        <g>
+          <circle id="n2" class="nodeCircle" cx="480" cy="190" r="44"></circle>
+          <text class="nodeLabel" x="480" y="185" text-anchor="middle">DNS</text>
+          <text class="nodeSub" x="480" y="205" text-anchor="middle">Name → IP</text>
+        </g>
+
+        <g>
+          <circle id="n3" class="nodeCircle" cx="690" cy="190" r="44"></circle>
+          <text class="nodeLabel" x="690" y="185" text-anchor="middle">Router</text>
+          <text class="nodeSub" x="690" y="205" text-anchor="middle">Routing</text>
+        </g>
+
+        <g>
+          <circle id="n4" class="nodeCircle" cx="650" cy="320" r="44"></circle>
+          <text class="nodeLabel" x="650" y="315" text-anchor="middle">Web</text>
+          <text class="nodeSub" x="650" y="335" text-anchor="middle">HTTP(S)</text>
+        </g>
+
+        <g>
+          <circle id="n5" class="nodeCircle" cx="800" cy="260" r="44"></circle>
+          <text class="nodeLabel" x="800" y="255" text-anchor="middle">Server</text>
+          <text class="nodeSub" x="800" y="275" text-anchor="middle">Website</text>
+        </g>
+
+        <!-- packet -->
+        <g id="packet" class="packet" style="display:none">
+          <circle id="packetCircle" cx="120" cy="260" r="12" fill="#4f46e5"></circle>
+          <circle cx="120" cy="260" r="6" fill="#ffffff" opacity="0.9"></circle>
+        </g>
+      </svg>
+
+      <div class="legend">
+        <span><span class="dot active"></span>Current step</span>
+        <span><span class="dot done"></span>Activated</span>
+        <span><span class="dot"></span>Locked</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="stepLine" id="stepLine">Step 1 of 6</p>
+      <p class="question" id="qText">Loading…</p>
+      <div class="options" id="opts"></div>
+
+      <div class="row">
+        <button id="submitBtn" disabled>Submit</button>
+        <button id="resetBtn" class="secondary" type="button">Restart</button>
+      </div>
+
+      <div id="fb" class="feedback" style="display:none"></div>
+    </div>
+  </div>
 
 <script>
-const questions = [
-  {
-    q:"What was the original purpose of ARPANET?",
-    options:[
-      "Entertainment networking",
-      "Robust communication during failures",
-      "Commercial internet access",
-      "Social media sharing"
-    ],
-    answer:1,
-    feedback:"ARPANET was designed so communication could continue even if parts of the network failed."
-  },
-  {
-    q:"Why does the Internet continue working even if one path fails?",
-    options:[
-      "Because data is duplicated",
-      "Because of central control",
-      "Because of redundant routing paths",
-      "Because servers never fail"
-    ],
-    answer:2,
-    feedback:"The Internet uses multiple routing paths so data can be rerouted if one link fails."
-  },
-  {
-    q:"Which statement best describes the Internet and the World Wide Web?",
-    options:[
-      "They are the same",
-      "The Internet is part of the Web",
-      "The Web is a service on the Internet",
-      "They work independently"
-    ],
-    answer:2,
-    feedback:"The World Wide Web is one of many services that run on the Internet."
-  },
-  {
-    q:"What does the phrase 'network of networks' mean?",
-    options:[
-      "Only wireless networks",
-      "Multiple independent networks interconnected",
-      "One large central network",
-      "A private corporate network"
-    ],
-    answer:1,
-    feedback:"The Internet connects many independent networks into one global system."
-  },
-  {
-    q:"Which part of a URL indicates the communication protocol?",
-    options:[
-      "Domain name",
-      "Path",
-      "Protocol prefix (http/https)",
-      "File name"
-    ],
-    answer:2,
-    feedback:"The protocol part tells how data should be transferred."
-  },
-  {
-    q:"Which protocol is mainly used for sending emails?",
-    options:[
-      "HTTP",
-      "FTP",
-      "SMTP",
-      "Telnet"
-    ],
-    answer:2,
-    feedback:"SMTP is used to send emails between servers."
-  },
-  {
-    q:"What is the main function of DNS?",
-    options:[
-      "Encrypt data",
-      "Translate domain names to IP addresses",
-      "Store web pages",
-      "Block malicious traffic"
-    ],
-    answer:1,
-    feedback:"DNS helps computers find IP addresses using human-readable names."
-  },
-  {
-    q:"What is the purpose of an IP address?",
-    options:[
-      "To identify devices uniquely",
-      "To store data",
-      "To encrypt traffic",
-      "To host websites"
-    ],
-    answer:0,
-    feedback:"IP addresses uniquely identify devices on a network."
-  },
-  {
-    q:"Why was IPv6 introduced?",
-    options:[
-      "Better speed",
-      "More security only",
-      "IPv4 address exhaustion",
-      "Simpler URLs"
-    ],
-    answer:2,
-    feedback:"IPv6 provides a much larger address space than IPv4."
-  },
-  {
-    q:"What is the primary role of an Internet Service Provider?",
-    options:[
-      "Create websites",
-      "Provide Internet access",
-      "Control Internet traffic globally",
-      "Design protocols"
-    ],
-    answer:1,
-    feedback:"ISPs connect users and organizations to the Internet."
-  }
+/**
+ * Build-the-Route GBL
+ * - Low cognitive load: one board, one question, consistent interaction
+ * - Progress = node activation + line turning green
+ * - Hint appears after 2 wrong attempts on a step
+ */
+
+const STEPS = [
+  { key:"user",   label:"User device basics", nodesDone:[0], edgesOn:[] },
+  { key:"isp",    label:"ISP + network of networks", nodesDone:[1], edgesOn:[0] },
+  { key:"dns",    label:"DNS + domain/host", nodesDone:[2], edgesOn:[1] },
+  { key:"route",  label:"Routing + redundancy", nodesDone:[3], edgesOn:[2] },
+  { key:"web",    label:"URL + protocols + HTTPS", nodesDone:[4], edgesOn:[4] },
+  { key:"server", label:"IP versions + reaching server", nodesDone:[5], edgesOn:[3,5] }
 ];
 
-let step=0;
-let selected=null;
+// Question bank (Chapter 1 aligned). Each step will draw one question randomly without repetition for that step.
+const BANK = {
+  user: [
+    {
+      q: "An IP address mainly helps in:",
+      options: ["Formatting web pages", "Identifying a device and locating it on the network", "Encrypting emails", "Blocking all malware"],
+      answer: 1,
+      why: "An IP address identifies a host/interface and supports location addressing.",
+      hint: "Think: name vs address vs route (what, where, how)."
+    },
+    {
+      q: "A URL is used in a browser mainly to tell the browser:",
+      options: ["What resource you want to reach", "How many routers exist", "Which ISP owns the Internet", "How to write HTML code"],
+      answer: 0,
+      why: "A URL tells the browser what resource you want to access.",
+      hint: "URL = Uniform Resource Locator."
+    }
+  ],
+  isp: [
+    {
+      q: "The Internet is best described as:",
+      options: ["A single central network owned by one organization", "A network of interconnected networks", "Only the World Wide Web", "Only wireless connections"],
+      answer: 1,
+      why: "The Internet connects many independent networks together.",
+      hint: "Think: your home/university network connects outward via an ISP."
+    },
+    {
+      q: "What is the primary role of an ISP?",
+      options: ["Create web pages", "Provide access/connection to the Internet", "Replace DNS servers", "Convert HTTP to HTML"],
+      answer: 1,
+      why: "ISPs provide Internet access and connectivity services.",
+      hint: "ISP = Internet Service Provider."
+    }
+  ],
+  dns: [
+    {
+      q: "DNS mainly converts:",
+      options: ["IP addresses into passwords", "Domain names into IP addresses", "Emails into web pages", "HTTP into HTML"],
+      answer: 1,
+      why: "DNS translates human-readable domain names into numeric IP addresses.",
+      hint: "Humans remember names; networks route by numbers."
+    },
+    {
+      q: "In a URL, the domain name is best thought of as:",
+      options: ["The name of the network you want to connect to", "A file stored on the server", "The encryption key", "The browser program itself"],
+      answer: 0,
+      why: "Domain name can be seen as the network name; host as a specific computer on it.",
+      hint: "Host + domain together point you to the destination."
+    }
+  ],
+  route: [
+    {
+      q: "Why was the Internet designed to be fault-tolerant?",
+      options: ["So it can work even if some sites/links are down", "So nobody needs an IP address", "So HTTPS is always used", "So browsers never crash"],
+      answer: 0,
+      why: "Internet design supports alternate routing when parts of the network fail.",
+      hint: "If the direct route fails, traffic goes around."
+    },
+    {
+      q: "If the most direct route is not available, what happens?",
+      options: ["Communication stops permanently", "Routers send traffic via alternate routes", "DNS deletes the domain", "The URL becomes invalid"],
+      answer: 1,
+      why: "Routers can redirect packets around failures using alternate routes.",
+      hint: "Routing = choosing a path."
+    }
+  ],
+  web: [
+    {
+      q: "HTTP at the beginning of a web address stands for:",
+      options: ["HyperText Transfer Protocol", "High Traffic Transfer Program", "Host To Top Protocol", "Hyperlink Text Template Process"],
+      answer: 0,
+      why: "HTTP defines how browsers and web servers communicate.",
+      hint: "It’s a protocol (rules of communication)."
+    },
+    {
+      q: "When http changes to https in a URL, it usually means:",
+      options: ["The page is smaller", "Communication is encrypted for safer transmission", "The host name is missing", "The file is always .pdf"],
+      answer: 1,
+      why: "HTTPS indicates secure (encrypted) communication between browser and server.",
+      hint: "The “s” typically stands for secure."
+    },
+    {
+      q: "Which protocol is mainly used for sending email between mail servers?",
+      options: ["FTP", "SMTP", "HTTP", "Telnet"],
+      answer: 1,
+      why: "SMTP is Simple Mail Transfer Protocol for exchanging email.",
+      hint: "Email server-to-server = SMTP."
+    }
+  ],
+  server: [
+    {
+      q: "IPv4 addresses are typically written in:",
+      options: ["Dot-decimal notation like 172.16.254.1", "Only hexadecimal with colons", "Only binary with spaces", "Only as domain names"],
+      answer: 0,
+      why: "IPv4 is commonly written as four numbers (0–255) separated by dots.",
+      hint: "Four octets separated by dots."
+    },
+    {
+      q: "A main reason IPv6 was introduced is:",
+      options: ["To replace HTML", "IPv4 address exhaustion", "To remove routers", "To eliminate DNS"],
+      answer: 1,
+      why: "IPv6 expanded address space because IPv4 addresses were running out.",
+      hint: "IPv6 uses a much larger address size than IPv4."
+    }
+  ]
+};
 
-const pathDiv=document.getElementById("path");
-const qDiv=document.getElementById("question");
-const optDiv=document.getElementById("options");
-const feedbackDiv=document.getElementById("feedback");
-const btn=document.getElementById("actionBtn");
+// --- State ---
+let stepIndex = 0;
+let currentQ = null;
+let selected = null;
+let attempts = Array(STEPS.length).fill(0);
+let usedByStep = STEPS.map(() => new Set());
 
-function renderPath(){
-  pathDiv.innerHTML="";
-  questions.forEach((_,i)=>{
-    const n=document.createElement("div");
-    n.className="node"+(i<step?" done":i===step?" active":"");
-    n.textContent=i+1;
-    pathDiv.appendChild(n);
-  });
+// --- DOM ---
+const stepLine = document.getElementById("stepLine");
+const qText = document.getElementById("qText");
+const opts = document.getElementById("opts");
+const submitBtn = document.getElementById("submitBtn");
+const resetBtn = document.getElementById("resetBtn");
+const fb = document.getElementById("fb");
+const statusPill = document.getElementById("statusPill");
+
+const packet = document.getElementById("packet");
+const packetCircle = document.getElementById("packetCircle");
+
+const nodeEls = [...Array(6)].map((_,i)=>document.getElementById("n"+i));
+const edgeEls = [...Array(6)].map((_,i)=>document.getElementById("e"+i)).filter(Boolean);
+
+// Node coordinates (must match SVG)
+const P = [
+  {x:120,y:260}, // user
+  {x:300,y:260}, // isp
+  {x:480,y:190}, // dns
+  {x:690,y:190}, // router
+  {x:650,y:320}, // web
+  {x:800,y:260}  // server
+];
+
+// Route for final packet animation (a nice “goal state”)
+const PACKET_PATH = [
+  P[0], P[1], P[2], P[3], P[5] // user->isp->dns->router->server
+];
+
+// --- Helpers ---
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function pickQuestionForStep(stepKey, stepIdx){
+  const pool = BANK[stepKey] || [];
+  if(pool.length === 0) return null;
+
+  // avoid repetition within the same step until pool exhausted
+  const used = usedByStep[stepIdx];
+  let candidates = pool.map((q,i)=>({q,i})).filter(x=>!used.has(x.i));
+  if(candidates.length === 0){
+    used.clear();
+    candidates = pool.map((q,i)=>({q,i}));
+  }
+  const pick = candidates[Math.floor(Math.random()*candidates.length)];
+  used.add(pick.i);
+  return pick.q;
+}
+
+function setFeedback(kind, title, body, hintText=null){
+  fb.style.display = "block";
+  fb.className = "feedback " + (kind === "ok" ? "ok" : "bad");
+  fb.innerHTML = `<b>${title}</b><div style="margin-top:6px">${body}</div>` +
+    (hintText ? `<div class="hint"><b>Hint:</b> ${hintText}</div>` : "");
+}
+
+function clearFeedback(){
+  fb.style.display = "none";
+  fb.textContent = "";
+  fb.className = "feedback";
+}
+
+function updateBoard(){
+  // mark nodes
+  nodeEls.forEach(n => n.classList.remove("active","done"));
+  edgeEls.forEach(e => e.classList.remove("on"));
+
+  // nodes done up to stepIndex-1
+  for(let i=0;i<stepIndex;i++){
+    const doneNodes = STEPS[i].nodesDone;
+    doneNodes.forEach(idx => nodeEls[idx].classList.add("done"));
+    (STEPS[i].edgesOn || []).forEach(ei => edgeEls[ei].classList.add("on"));
+  }
+
+  // current active node highlight
+  if(stepIndex < STEPS.length){
+    const activeNode = STEPS[stepIndex].nodesDone[0];
+    nodeEls[activeNode].classList.add("active");
+  }
+
+  statusPill.innerHTML = `<b>Route:</b> ${Math.min(stepIndex,6)}/6 nodes activated`;
 }
 
 function renderQuestion(){
-  const q=questions[step];
-  qDiv.textContent=q.q;
-  optDiv.innerHTML="";
-  feedbackDiv.textContent="";
-  selected=null;
-  btn.textContent="Submit";
-  q.options.forEach((o,i)=>{
-    const d=document.createElement("div");
-    d.className="option";
-    d.textContent=o;
-    d.onclick=()=>{
-      document.querySelectorAll(".option").forEach(x=>x.classList.remove("selected"));
-      d.classList.add("selected");
-      selected=i;
-    };
-    optDiv.appendChild(d);
+  clearFeedback();
+  selected = null;
+  submitBtn.disabled = true;
+
+  const s = STEPS[stepIndex];
+  stepLine.textContent = `Step ${stepIndex+1} of ${STEPS.length} • ${s.label}`;
+  currentQ = pickQuestionForStep(s.key, stepIndex);
+
+  if(!currentQ){
+    qText.textContent = "No question available for this step.";
+    opts.innerHTML = "";
+    return;
+  }
+
+  qText.textContent = currentQ.q;
+
+  // shuffle options while keeping correct index
+  const indexed = currentQ.options.map((txt, idx)=>({txt, idx}));
+  const mixed = shuffle(indexed);
+  const correctOriginal = currentQ.answer;
+  const correctNewIndex = mixed.findIndex(x=>x.idx===correctOriginal);
+
+  // store remapped answer for this render
+  currentQ._renderOptions = mixed.map(x=>x.txt);
+  currentQ._renderAnswer = correctNewIndex;
+
+  opts.innerHTML = "";
+  currentQ._renderOptions.forEach((txt,i)=>{
+    const d = document.createElement("div");
+    d.className = "opt";
+    d.textContent = txt;
+    d.addEventListener("click", ()=>{
+      [...opts.children].forEach(x=>x.classList.remove("sel"));
+      d.classList.add("sel");
+      selected = i;
+      submitBtn.disabled = false;
+    });
+    opts.appendChild(d);
   });
 }
 
-btn.onclick=()=>{
-  if(selected===null) return;
-  const q=questions[step];
-  if(selected===q.answer){
-    feedbackDiv.textContent="Correct. "+q.feedback;
-    feedbackDiv.className="feedback correct";
-    btn.textContent="Continue";
-    btn.onclick=()=>{
-      step++;
-      if(step<questions.length){
-        btn.onclick=submitHandler;
-        renderPath();
-        renderQuestion();
-      }else{
-        qDiv.textContent="You have completed the learning path.";
-        optDiv.innerHTML="";
-        feedbackDiv.textContent="Learning progressed through understanding. This is Game-Based Learning.";
-        btn.style.display="none";
-      }
-    };
+function completeStep(){
+  // Activate board elements for this step
+  updateBoard();
+
+  // move to next
+  stepIndex++;
+  if(stepIndex < STEPS.length){
+    updateBoard();
+    renderQuestion();
   }else{
-    feedbackDiv.textContent="Not quite. "+q.feedback;
-    feedbackDiv.className="feedback wrong";
+    // finished
+    updateBoard();
+    showFinish();
   }
-};
+}
 
-const submitHandler=btn.onclick;
+function showFinish(){
+  stepLine.textContent = "Route Complete";
+  qText.textContent = "Great. You built the route through understanding.";
+  opts.innerHTML = "";
+  submitBtn.style.display = "none";
 
-renderPath();
+  setFeedback(
+    "ok",
+    "Goal achieved",
+    "A packet will now travel across your completed route. This visible goal state is what makes it feel like a game, while learning remains in control."
+  );
+
+  animatePacket();
+}
+
+function animatePacket(){
+  packet.style.display = "block";
+  packetCircle.setAttribute("cx", PACKET_PATH[0].x);
+  packetCircle.setAttribute("cy", PACKET_PATH[0].y);
+
+  const inner = packet.querySelector("circle:nth-child(2)");
+  inner.setAttribute("cx", PACKET_PATH[0].x);
+  inner.setAttribute("cy", PACKET_PATH[0].y);
+
+  // interpolate across segments
+  const speed = 280; // px per second (slow, readable)
+  let seg = 0;
+  let t = 0;
+  let last = performance.now();
+
+  function dist(a,b){ return Math.hypot(b.x-a.x, b.y-a.y); }
+
+  function tick(now){
+    const dt = (now - last)/1000;
+    last = now;
+
+    const a = PACKET_PATH[seg];
+    const b = PACKET_PATH[seg+1];
+    const d = dist(a,b);
+    if(d === 0){ seg++; t=0; }
+
+    t += (speed*dt)/d;
+
+    if(t >= 1){
+      seg++;
+      t = 0;
+      if(seg >= PACKET_PATH.length-1){
+        // done
+        packetCircle.setAttribute("cx", PACKET_PATH[PACKET_PATH.length-1].x);
+        packetCircle.setAttribute("cy", PACKET_PATH[PACKET_PATH.length-1].y);
+        inner.setAttribute("cx", PACKET_PATH[PACKET_PATH.length-1].x);
+        inner.setAttribute("cy", PACKET_PATH[PACKET_PATH.length-1].y);
+        return;
+      }
+    }
+
+    const x = a.x + (b.x - a.x)*t;
+    const y = a.y + (b.y - a.y)*t;
+
+    packetCircle.setAttribute("cx", x);
+    packetCircle.setAttribute("cy", y);
+    inner.setAttribute("cx", x);
+    inner.setAttribute("cy", y);
+
+    requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// --- Events ---
+submitBtn.addEventListener("click", ()=>{
+  if(selected === null || !currentQ) return;
+
+  const correct = (selected === currentQ._renderAnswer);
+  if(correct){
+    setFeedback("ok", "Correct", currentQ.why);
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Unlocked ✓";
+    // small delay to let learner read feedback
+    setTimeout(()=>{
+      submitBtn.textContent = "Submit";
+      submitBtn.disabled = false;
+      completeStep();
+    }, 900);
+  }else{
+    attempts[stepIndex] += 1;
+    const showHint = attempts[stepIndex] >= 2 ? currentQ.hint : null;
+    setFeedback("bad", "Not quite", currentQ.why, showHint);
+  }
+});
+
+resetBtn.addEventListener("click", ()=>{
+  stepIndex = 0;
+  attempts = Array(STEPS.length).fill(0);
+  usedByStep = STEPS.map(() => new Set());
+  submitBtn.style.display = "block";
+  submitBtn.textContent = "Submit";
+  submitBtn.disabled = true;
+  packet.style.display = "none";
+  updateBoard();
+  renderQuestion();
+});
+
+// --- Init ---
+updateBoard();
 renderQuestion();
 </script>
 </body>
