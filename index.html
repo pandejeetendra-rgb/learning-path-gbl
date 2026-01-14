@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Build the Route (GBL) — Internet Fundamentals</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Build the Internet Route (GBL) — 15 Steps</title>
 <style>
   :root{
     --bg:#f6f7fb;
@@ -28,14 +28,14 @@
     justify-content:center;
   }
   .app{
-    width:min(980px, 100%);
+    width:min(1100px, 100%);
     padding:14px;
     display:grid;
     gap:14px;
-    grid-template-columns: 1.1fr .9fr;
+    grid-template-columns: 1.15fr .85fr;
     align-items:start;
   }
-  @media (max-width: 860px){
+  @media (max-width: 900px){
     .app{ grid-template-columns: 1fr; }
   }
 
@@ -44,7 +44,7 @@
     background:var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    padding:14px 14px 12px;
+    padding:14px;
     display:flex;
     gap:12px;
     align-items:flex-start;
@@ -76,7 +76,6 @@
     align-items:center;
     justify-content:flex-end;
   }
-
   .pill{
     display:inline-flex;
     gap:8px;
@@ -96,16 +95,33 @@
     box-shadow: var(--shadow);
     overflow:hidden;
   }
+
+  /* Mobile-friendly board: scroll inside if needed */
   .board{
     padding:12px;
   }
+  .boardScroll{
+    border:1px solid rgba(208,213,221,.6);
+    border-radius: 14px;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+    background:#fff;
+  }
+  /* Taller board area on desktop; tighter on mobile */
+  .boardScroll{
+    max-height: 520px;
+  }
+  @media (max-width: 900px){
+    .boardScroll{ max-height: 420px; }
+  }
+
+  .panel{ padding:14px; }
 
   .legend{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
-    margin:8px 0 0;
-    padding:0 4px;
+    margin:10px 2px 0;
     color:var(--muted);
     font-size:12px;
   }
@@ -118,39 +134,42 @@
   .dot.done{ background: var(--ok); border-color: var(--ok); }
   .dot.alt { background: #fff7ed; border-color: rgba(181,71,8,.5); }
 
-  .panel{
-    padding:14px;
-  }
   .stepLine{
     color:var(--muted);
     font-size:13px;
     margin:0 0 8px;
   }
   .question{
-    margin:0 0 10px;
-    font-weight:650;
+    margin:0 0 12px;
+    font-weight:800;
     font-size:15px;
     line-height:1.35;
   }
+
   .options{
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:10px;
   }
   .opt{
     border:1px solid var(--line);
-    border-radius: 12px;
-    padding:10px 10px;
+    border-radius: 14px;
+    padding:12px 12px;
     cursor:pointer;
     background:#fff;
-    transition:.15s ease;
-    font-size:14px;
+    transition:.12s ease;
+    font-size:14.5px;
+    line-height:1.25;
+    min-height: 48px;
+    display:flex;
+    align-items:center;
   }
   .opt:hover{ transform: translateY(-1px); }
   .opt.sel{
     border-color: var(--primary);
     background: #eef2ff;
   }
+
   .row{
     display:flex;
     gap:10px;
@@ -159,60 +178,54 @@
   button{
     width:100%;
     border:none;
-    border-radius: 12px;
-    padding:11px 12px;
+    border-radius: 14px;
+    padding:13px 12px;
     cursor:pointer;
-    font-weight:650;
-    font-size:14px;
+    font-weight:850;
+    font-size:14.5px;
     background: var(--primary);
     color:#fff;
+    min-height: 48px;
   }
-  button.secondary{
-    background:#475467;
-  }
-  button:disabled{
-    opacity:.6;
-    cursor:not-allowed;
-  }
+  button.secondary{ background:#475467; }
+  button:disabled{ opacity:.6; cursor:not-allowed; }
+
   .feedback{
-    margin-top:10px;
-    font-size:13px;
-    line-height:1.4;
-    padding:10px;
-    border-radius:12px;
+    margin-top:12px;
+    font-size:13.2px;
+    line-height:1.45;
+    padding:12px;
+    border-radius:14px;
     border:1px solid var(--line);
     background:#fbfcfe;
   }
   .feedback.ok{ border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.07); }
   .feedback.bad{ border-color: rgba(180,35,24,.35); background: rgba(180,35,24,.06); }
-  .feedback.warn{ border-color: rgba(181,71,8,.35); background: rgba(181,71,8,.07); }
   .hint{
     margin-top:8px;
     color:#7a5c00;
-    font-size:12.5px;
+    font-size:12.8px;
   }
 
   /* SVG styles */
-  svg{ width:100%; height:auto; display:block; }
+  svg{ width:980px; height:auto; display:block; } /* fixed canvas width, scroll container handles small screens */
   .edge{
     stroke: var(--line);
     stroke-width: 6;
     stroke-linecap: round;
     fill:none;
   }
-  .edge.on{
-    stroke: var(--ok);
-  }
-  /* Alternate route edge (dashed) */
+  .edge.on{ stroke: var(--ok); }
+
   .edge.alt{
-    stroke: rgba(181,71,8,.55);
+    stroke: rgba(181,71,8,.65);
     stroke-width: 5;
     stroke-dasharray: 10 10;
-    opacity: .35;
+    opacity: .25;
   }
   .edge.alt.flash{
     opacity: 1;
-    stroke: rgba(181,71,8,.95);
+    stroke: rgba(181,71,8,.98);
     stroke-width: 6;
   }
 
@@ -221,19 +234,17 @@
     stroke: var(--line);
     stroke-width: 3;
   }
-  .nodeCircle.active{
-    stroke: var(--primary);
-    stroke-width: 4;
-  }
+  .nodeCircle.active{ stroke: var(--primary); stroke-width: 4; }
   .nodeCircle.done{
     fill: rgba(22,163,74,.12);
     stroke: var(--ok);
     stroke-width: 4;
   }
+
   .nodeLabel{
     font-size: 12.5px;
     fill: var(--muted);
-    font-weight: 650;
+    font-weight: 900;
   }
   .nodeSub{
     font-size: 11px;
@@ -244,7 +255,6 @@
     filter: drop-shadow(0 6px 10px rgba(16,24,40,.18));
   }
 
-  /* tiny toast */
   .toast{
     position: fixed;
     left: 50%;
@@ -270,89 +280,77 @@
   <div class="app">
     <div class="topbar">
       <div class="title">
-        <h1>Build the Internet Route (GBL Demo)</h1>
+        <h1>Build the Internet Route (GBL) — 15 Steps</h1>
         <p>
-          Answer correctly to activate each network component. The route completes only through understanding.
-          No timer. No penalties. Retry allowed.
+          Build a complete route by unlocking each layer through understanding. Wrong answers trigger a rerouting visual.
+          Mobile-friendly with a scrollable board.
         </p>
       </div>
-
       <div class="stats">
-        <div class="pill" id="statusPill"><b>Route:</b> 0/6 nodes activated</div>
+        <div class="pill" id="statusPill"><b>Route:</b> 0/15 nodes</div>
         <div class="pill" id="packetPill"><b>Packets delivered:</b> 0/1</div>
       </div>
     </div>
 
     <div class="board">
-      <svg viewBox="0 0 900 520" aria-label="Internet route board">
-        <!-- main edges -->
-        <path id="e0" class="edge" d="M120,260 C210,260 220,260 300,260" />
-        <path id="e1" class="edge" d="M300,260 C380,220 420,200 480,190" />
-        <path id="e2" class="edge" d="M480,190 C560,170 610,170 690,190" />
-        <path id="e3" class="edge" d="M690,190 C740,210 770,230 800,260" />
-        <path id="e4" class="edge" d="M480,190 C520,260 570,300 650,320" />
-        <path id="e5" class="edge" d="M650,320 C710,320 750,300 800,260" />
+      <div class="boardScroll" id="boardScroll">
+        <svg viewBox="0 0 980 560" aria-label="Internet route board (15 steps)">
+          <!-- main route edges (0..13) -->
+          <path id="e0"  class="edge" d="M70,280 C120,280 140,280 190,280" />
+          <path id="e1"  class="edge" d="M190,280 C240,280 260,280 310,280" />
+          <path id="e2"  class="edge" d="M310,280 C360,250 400,230 440,220" />
+          <path id="e3"  class="edge" d="M440,220 C490,210 530,210 570,220" />
+          <path id="e4"  class="edge" d="M570,220 C620,240 650,255 690,280" />
+          <path id="e5"  class="edge" d="M690,280 C735,305 745,340 720,372" />
+          <path id="e6"  class="edge" d="M720,372 C690,410 640,420 600,395" />
+          <path id="e7"  class="edge" d="M600,395 C565,372 545,352 520,332" />
+          <path id="e8"  class="edge" d="M520,332 C495,310 480,290 460,268" />
+          <path id="e9"  class="edge" d="M460,268 C510,260 560,260 610,268" />
+          <path id="e10" class="edge" d="M610,268 C660,276 710,286 760,298" />
+          <path id="e11" class="edge" d="M760,298 C805,310 840,280 870,260" />
+          <path id="e12" class="edge" d="M870,260 C900,240 915,215 900,190" />
+          <path id="e13" class="edge" d="M900,190 C875,150 825,145 790,170" />
 
-        <!-- alternate route edges (dashed, used for "rerouting" visual) -->
-        <!-- alt1: ISP -> Router directly -->
-        <path id="a0" class="edge alt" d="M300,260 C420,300 540,290 690,190" />
-        <!-- alt2: DNS -> Web -> Server (already exists as main e4 + e5, but we show as alt highlight) -->
-        <path id="a1" class="edge alt" d="M480,190 C540,240 590,290 650,320" />
-        <path id="a2" class="edge alt" d="M650,320 C730,330 770,300 800,260" />
+          <!-- backup/alternate edges (dashed flash on error) -->
+          <path id="a0" class="edge alt" d="M310,280 C410,340 500,320 570,220" />
+          <path id="a1" class="edge alt" d="M570,220 C610,290 620,350 600,395" />
+          <path id="a2" class="edge alt" d="M440,220 C500,270 520,305 520,332" />
 
-        <!-- nodes -->
-        <g>
-          <circle id="n0" class="nodeCircle" cx="120" cy="260" r="44"></circle>
-          <text class="nodeLabel" x="120" y="255" text-anchor="middle">User</text>
-          <text class="nodeSub" x="120" y="275" text-anchor="middle">Device</text>
-        </g>
+          <!-- Nodes 0..14 -->
+          <!-- We keep labels short to avoid clutter on mobile -->
+          <g><circle id="n0" class="nodeCircle" cx="70"  cy="280" r="30"/><text class="nodeLabel" x="70" y="274" text-anchor="middle">User</text><text class="nodeSub" x="70" y="292" text-anchor="middle">Device</text></g>
+          <g><circle id="n1" class="nodeCircle" cx="190" cy="280" r="30"/><text class="nodeLabel" x="190" y="274" text-anchor="middle">LAN</text><text class="nodeSub" x="190" y="292" text-anchor="middle">Local</text></g>
+          <g><circle id="n2" class="nodeCircle" cx="310" cy="280" r="30"/><text class="nodeLabel" x="310" y="274" text-anchor="middle">ISP</text><text class="nodeSub" x="310" y="292" text-anchor="middle">Access</text></g>
+          <g><circle id="n3" class="nodeCircle" cx="440" cy="220" r="30"/><text class="nodeLabel" x="440" y="214" text-anchor="middle">Net</text><text class="nodeSub" x="440" y="232" text-anchor="middle">Nets</text></g>
+          <g><circle id="n4" class="nodeCircle" cx="570" cy="220" r="30"/><text class="nodeLabel" x="570" y="214" text-anchor="middle">WWW</text><text class="nodeSub" x="570" y="232" text-anchor="middle">Svc</text></g>
+          <g><circle id="n5" class="nodeCircle" cx="690" cy="280" r="30"/><text class="nodeLabel" x="690" y="274" text-anchor="middle">URL</text><text class="nodeSub" x="690" y="292" text-anchor="middle">Addr</text></g>
+          <g><circle id="n6" class="nodeCircle" cx="720" cy="372" r="30"/><text class="nodeLabel" x="720" y="366" text-anchor="middle">Proto</text><text class="nodeSub" x="720" y="384" text-anchor="middle">HTTP</text></g>
+          <g><circle id="n7" class="nodeCircle" cx="600" cy="395" r="30"/><text class="nodeLabel" x="600" y="389" text-anchor="middle">DNS</text><text class="nodeSub" x="600" y="407" text-anchor="middle">Name→IP</text></g>
+          <g><circle id="n8" class="nodeCircle" cx="520" cy="332" r="30"/><text class="nodeLabel" x="520" y="326" text-anchor="middle">IP</text><text class="nodeSub" x="520" y="344" text-anchor="middle">Addr</text></g>
+          <g><circle id="n9" class="nodeCircle" cx="460" cy="268" r="30"/><text class="nodeLabel" x="460" y="262" text-anchor="middle">v4/v6</text><text class="nodeSub" x="460" y="280" text-anchor="middle">Types</text></g>
+          <g><circle id="n10" class="nodeCircle" cx="610" cy="268" r="30"/><text class="nodeLabel" x="610" y="262" text-anchor="middle">Route</text><text class="nodeSub" x="610" y="280" text-anchor="middle">Path</text></g>
+          <g><circle id="n11" class="nodeCircle" cx="760" cy="298" r="30"/><text class="nodeLabel" x="760" y="292" text-anchor="middle">Redun</text><text class="nodeSub" x="760" y="310" text-anchor="middle">Alt</text></g>
+          <g><circle id="n12" class="nodeCircle" cx="870" cy="260" r="30"/><text class="nodeLabel" x="870" y="254" text-anchor="middle">Secure</text><text class="nodeSub" x="870" y="272" text-anchor="middle">HTTPS</text></g>
+          <g><circle id="n13" class="nodeCircle" cx="900" cy="190" r="30"/><text class="nodeLabel" x="900" y="184" text-anchor="middle">Server</text><text class="nodeSub" x="900" y="202" text-anchor="middle">Host</text></g>
+          <g><circle id="n14" class="nodeCircle" cx="790" cy="170" r="30"/><text class="nodeLabel" x="790" y="164" text-anchor="middle">WebApp</text><text class="nodeSub" x="790" y="182" text-anchor="middle">Page</text></g>
 
-        <g>
-          <circle id="n1" class="nodeCircle" cx="300" cy="260" r="44"></circle>
-          <text class="nodeLabel" x="300" y="255" text-anchor="middle">ISP</text>
-          <text class="nodeSub" x="300" y="275" text-anchor="middle">Access</text>
-        </g>
-
-        <g>
-          <circle id="n2" class="nodeCircle" cx="480" cy="190" r="44"></circle>
-          <text class="nodeLabel" x="480" y="185" text-anchor="middle">DNS</text>
-          <text class="nodeSub" x="480" y="205" text-anchor="middle">Name → IP</text>
-        </g>
-
-        <g>
-          <circle id="n3" class="nodeCircle" cx="690" cy="190" r="44"></circle>
-          <text class="nodeLabel" x="690" y="185" text-anchor="middle">Router</text>
-          <text class="nodeSub" x="690" y="205" text-anchor="middle">Routing</text>
-        </g>
-
-        <g>
-          <circle id="n4" class="nodeCircle" cx="650" cy="320" r="44"></circle>
-          <text class="nodeLabel" x="650" y="315" text-anchor="middle">Web</text>
-          <text class="nodeSub" x="650" y="335" text-anchor="middle">HTTP(S)</text>
-        </g>
-
-        <g>
-          <circle id="n5" class="nodeCircle" cx="800" cy="260" r="44"></circle>
-          <text class="nodeLabel" x="800" y="255" text-anchor="middle">Server</text>
-          <text class="nodeSub" x="800" y="275" text-anchor="middle">Website</text>
-        </g>
-
-        <!-- packet -->
-        <g id="packet" class="packet" style="display:none">
-          <circle id="packetCircle" cx="120" cy="260" r="12" fill="#4f46e5"></circle>
-          <circle id="packetCore" cx="120" cy="260" r="6" fill="#ffffff" opacity="0.9"></circle>
-        </g>
-      </svg>
+          <!-- packet -->
+          <g id="packet" class="packet" style="display:none">
+            <circle id="packetCircle" cx="70" cy="280" r="10" fill="#4f46e5"></circle>
+            <circle id="packetCore" cx="70" cy="280" r="5" fill="#ffffff" opacity="0.9"></circle>
+          </g>
+        </svg>
+      </div>
 
       <div class="legend">
-        <span><span class="dot active"></span>Current step</span>
+        <span><span class="dot active"></span>Current</span>
         <span><span class="dot done"></span>Activated</span>
-        <span><span class="dot alt"></span>Backup route (shows on error)</span>
+        <span><span class="dot alt"></span>Backup route (on error)</span>
       </div>
     </div>
 
     <div class="panel">
-      <p class="stepLine" id="stepLine">Step 1 of 6</p>
+      <p class="stepLine" id="stepLine">Step 1 of 15</p>
       <p class="question" id="qText">Loading…</p>
       <div class="options" id="opts"></div>
 
@@ -369,127 +367,137 @@
 
 <script>
 /**
- * Build-the-Route GBL (Enhanced)
- * Enhancements added:
- * 1) Packet counter (0/1) — goal indicator, not a score.
- * 2) Alternate-route visual on wrong answers — shows redundancy/rerouting concept.
+ * 15-step Build-the-Route GBL
+ * - One board, one question at a time (low cognitive)
+ * - 15 steps => more content coverage + more question capacity
+ * - Each step selects a random question from its pool, no repeats until pool exhausts
  */
 
 const STEPS = [
-  { key:"user",   label:"User device basics", nodesDone:[0], edgesOn:[] },
-  { key:"isp",    label:"ISP + network of networks", nodesDone:[1], edgesOn:[0] },
-  { key:"dns",    label:"DNS + domain/host", nodesDone:[2], edgesOn:[1] },
-  { key:"route",  label:"Routing + redundancy", nodesDone:[3], edgesOn:[2] },
-  { key:"web",    label:"URL + protocols + HTTPS", nodesDone:[4], edgesOn:[4] },
-  { key:"server", label:"IP versions + reaching server", nodesDone:[5], edgesOn:[3,5] }
+  { key:"user",   label:"User + addressing idea",            node:0,  edgesOn:[]  },
+  { key:"lan",    label:"Local network",                     node:1,  edgesOn:[0] },
+  { key:"isp",    label:"ISP role",                          node:2,  edgesOn:[1] },
+  { key:"net",    label:"Internet as network of networks",   node:3,  edgesOn:[2] },
+  { key:"www",    label:"Internet vs Web",                   node:4,  edgesOn:[3] },
+  { key:"url",    label:"URL meaning",                       node:5,  edgesOn:[4] },
+  { key:"proto",  label:"Protocols (HTTP/HTTPS/SMTP/FTP)",   node:6,  edgesOn:[5] },
+  { key:"dns",    label:"DNS (name to IP)",                  node:7,  edgesOn:[6] },
+  { key:"ip",     label:"IP address basics",                 node:8,  edgesOn:[7] },
+  { key:"ipver",  label:"IPv4 vs IPv6",                      node:9,  edgesOn:[8] },
+  { key:"route",  label:"Routing concept",                   node:10, edgesOn:[9] },
+  { key:"redun",  label:"Redundancy / alternate routes",     node:11, edgesOn:[10] },
+  { key:"https",  label:"HTTPS meaning",                     node:12, edgesOn:[11] },
+  { key:"server", label:"Server/host basics",                node:13, edgesOn:[12] },
+  { key:"webapp", label:"Web resource delivered",            node:14, edgesOn:[13] }
 ];
 
-// Question bank (Chapter 1 aligned). Each step draws one question randomly without repetition per step.
+/* Question pools.
+   Add as many questions as you want per key. The game will cycle without repetition until each pool exhausts.
+   (Kept moderate here; you can expand each pool to 10–20 easily.) */
 const BANK = {
   user: [
-    {
-      q: "An IP address mainly helps in:",
-      options: ["Formatting web pages", "Identifying a device and locating it on the network", "Encrypting emails", "Blocking all malware"],
-      answer: 1,
-      why: "An IP address identifies a host/interface and supports location addressing.",
-      hint: "Think: name vs address vs route (what, where, how)."
-    },
-    {
-      q: "A URL is used in a browser mainly to tell the browser:",
-      options: ["What resource you want to reach", "How many routers exist", "Which ISP owns the Internet", "How to write HTML code"],
-      answer: 0,
-      why: "A URL tells the browser what resource you want to access.",
-      hint: "URL = Uniform Resource Locator."
-    }
+    { q:"In networking, 'addressing' mainly helps in:", options:["Choosing fonts","Finding where to send data","Creating web pages","Removing DNS"], answer:1, why:"Addressing tells the system where data should be delivered.", hint:"Packets need a destination address." },
+    { q:"An IP address mainly helps in:", options:["Formatting web pages","Identifying a device and supporting delivery","Encrypting emails","Replacing routers"], answer:1, why:"IP addresses help identify devices and support packet delivery.", hint:"Think: destination and identity." }
+  ],
+  lan: [
+    { q:"A home Wi-Fi network is best described as:", options:["A local network connecting nearby devices","A global network of networks","Only the World Wide Web","A DNS system"], answer:0, why:"Home Wi-Fi connects devices locally before reaching the wider Internet.", hint:"LAN = Local Area Network." },
+    { q:"Typical access sequence is:", options:["Internet → LAN → User","User → LAN → ISP → Internet","DNS → User → ISP","WWW → ISP → LAN"], answer:1, why:"A user device connects to LAN, then ISP, then the Internet.", hint:"Start from the user and move outward." }
   ],
   isp: [
-    {
-      q: "The Internet is best described as:",
-      options: ["A single central network owned by one organization", "A network of interconnected networks", "Only the World Wide Web", "Only wireless connections"],
-      answer: 1,
-      why: "The Internet connects many independent networks together.",
-      hint: "Think: your home/university network connects outward via an ISP."
-    },
-    {
-      q: "What is the primary role of an ISP?",
-      options: ["Create web pages", "Provide access/connection to the Internet", "Replace DNS servers", "Convert HTTP to HTML"],
-      answer: 1,
-      why: "ISPs provide Internet access and connectivity services.",
-      hint: "ISP = Internet Service Provider."
-    }
+    { q:"The primary role of an ISP is to:", options:["Create web pages","Provide Internet access/connection","Remove IPv6","Control all traffic globally"], answer:1, why:"An ISP connects users/organizations to the Internet.", hint:"ISP = Internet Service Provider." },
+    { q:"Internet is best described as:", options:["A single central network","A network of interconnected networks","Only the WWW","Only wireless links"], answer:1, why:"The Internet connects many independent networks together.", hint:"Network of networks." }
+  ],
+  net: [
+    { q:"Why was the Internet designed for robustness?", options:["So it can keep working even if parts fail","So it removes the need for IP","So it avoids DNS","So it makes browsers faster"], answer:0, why:"Design supports communication even when some links/sites fail.", hint:"Fault tolerance." },
+    { q:"If one route fails, data can still reach because:", options:["The Internet uses alternate routes","DNS deletes the domain","URLs stop working","Servers never fail"], answer:0, why:"Routing can use alternate paths when a direct path fails.", hint:"Redundancy." }
+  ],
+  www: [
+    { q:"Which statement is correct?", options:["Internet and WWW are the same","WWW is a service that runs on the Internet","Internet runs inside WWW","WWW replaces IP addressing"], answer:1, why:"The WWW is one of the services available on top of the Internet.", hint:"Internet = infrastructure; Web = service." },
+    { q:"Email and FTP are examples of:", options:["Only WWW pages","Internet services beyond the Web","DNS functions","Browser plug-ins"], answer:1, why:"The Internet supports many services including email and file transfer.", hint:"Web is not the whole Internet." }
+  ],
+  url: [
+    { q:"In a URL, the protocol part is usually:", options:["The file name","http/https at the beginning","Only the domain name","Only the last folder"], answer:1, why:"The protocol appears at the start (like http or https).", hint:"It comes before ://" },
+    { q:"A domain name helps humans because it is:", options:["Easier to remember than numeric addresses","Required to encrypt data","A type of cable","A router setting"], answer:0, why:"Domain names are human-friendly; networks use IP addresses to route.", hint:"Names for humans, numbers for networks." }
+  ],
+  proto: [
+    { q:"HTTP stands for:", options:["HyperText Transfer Protocol","High Traffic Transfer Program","Host Transfer Template Process","Hyperlink Text Tool Protocol"], answer:0, why:"HTTP defines how web data is transferred.", hint:"It’s a communication protocol." },
+    { q:"SMTP is mainly used for:", options:["Sending email between servers","Browsing web pages","DNS lookup","Routing decisions"], answer:0, why:"SMTP handles sending email across mail servers.", hint:"Email sending protocol." },
+    { q:"FTP is mainly used for:", options:["File transfer","Web page styling","DNS translation","Encryption"], answer:0, why:"FTP is used to transfer files between systems.", hint:"F = File." }
   ],
   dns: [
-    {
-      q: "DNS mainly converts:",
-      options: ["IP addresses into passwords", "Domain names into IP addresses", "Emails into web pages", "HTTP into HTML"],
-      answer: 1,
-      why: "DNS translates human-readable domain names into numeric IP addresses.",
-      hint: "Humans remember names; networks route by numbers."
-    },
-    {
-      q: "In a URL, the domain name is best thought of as:",
-      options: ["The name of the network you want to connect to", "A file stored on the server", "The encryption key", "The browser program itself"],
-      answer: 0,
-      why: "Domain name can be seen as the network name; host as a specific computer on it.",
-      hint: "Host + domain together point you to the destination."
-    }
+    { q:"DNS mainly converts:", options:["Domain names to IP addresses","IP addresses to passwords","Emails to web pages","HTTP to HTML"], answer:0, why:"DNS translates names into numeric IP addresses.", hint:"Names → numbers." },
+    { q:"DNS is useful because:", options:["It allows names instead of numbers","It replaces routers","It encrypts all traffic","It removes URLs"], answer:0, why:"DNS lets people use names while computers route using IPs.", hint:"Convenience + routing." }
+  ],
+  ip: [
+    { q:"The main purpose of an IP address is to:", options:["Store web pages","Identify a host/device on a network","Remove routing","Replace DNS"], answer:1, why:"IP helps identify a host/interface for communication.", hint:"Identity + delivery." },
+    { q:"IPv4 is commonly written as:", options:["Four numbers separated by dots","Only hex with colons","Only a domain name","Only binary with spaces"], answer:0, why:"IPv4 uses dot-decimal notation like 172.16.254.1.", hint:"Four octets." }
+  ],
+  ipver: [
+    { q:"IPv6 was introduced mainly because:", options:["IPv4 addresses were running out","To remove DNS","To remove routing","To replace HTTP"], answer:0, why:"IPv6 provides a much larger address space than IPv4.", hint:"Address exhaustion." },
+    { q:"Which is a basic difference?", options:["IPv6 has a larger address space","IPv4 uses colons","IPv6 uses only dots","IPv4 cannot route"], answer:0, why:"IPv6 expands the address space substantially.", hint:"More addresses." }
   ],
   route: [
-    {
-      q: "Why was the Internet designed to be fault-tolerant?",
-      options: ["So it can work even if some sites/links are down", "So nobody needs an IP address", "So HTTPS is always used", "So browsers never crash"],
-      answer: 0,
-      why: "Internet design supports alternate routing when parts of the network fail.",
-      hint: "If the direct route fails, traffic goes around."
-    },
-    {
-      q: "If the most direct route is not available, what happens?",
-      options: ["Communication stops permanently", "Routers send traffic via alternate routes", "DNS deletes the domain", "The URL becomes invalid"],
-      answer: 1,
-      why: "Routers can redirect packets around failures using alternate routes.",
-      hint: "Routing = choosing a path."
-    }
+    { q:"Routing mainly means:", options:["Choosing paths for packets across networks","Writing URLs","Creating DNS records","Encrypting files"], answer:0, why:"Routers help select paths for packets to reach destinations.", hint:"Route = path." },
+    { q:"After DNS gives an IP address, the next key process is:", options:["Routing packets towards that IP","Deleting the domain","Changing the URL","Creating a new ISP"], answer:0, why:"Once you have the IP, packets are routed across networks.", hint:"Name → IP → route." }
   ],
-  web: [
-    {
-      q: "HTTP at the beginning of a web address stands for:",
-      options: ["HyperText Transfer Protocol", "High Traffic Transfer Program", "Host To Top Protocol", "Hyperlink Text Template Process"],
-      answer: 0,
-      why: "HTTP defines how browsers and web servers communicate.",
-      hint: "It’s a protocol (rules of communication)."
-    },
-    {
-      q: "When http changes to https in a URL, it usually means:",
-      options: ["The page is smaller", "Communication is encrypted for safer transmission", "The host name is missing", "The file is always .pdf"],
-      answer: 1,
-      why: "HTTPS indicates secure (encrypted) communication between browser and server.",
-      hint: "The “s” typically stands for secure."
-    },
-    {
-      q: "Which protocol is mainly used for sending email between mail servers?",
-      options: ["FTP", "SMTP", "HTTP", "Telnet"],
-      answer: 1,
-      why: "SMTP is Simple Mail Transfer Protocol for exchanging email.",
-      hint: "Email server-to-server = SMTP."
-    }
+  redun: [
+    { q:"If the most direct route fails, typically:", options:["Traffic can be sent via alternate paths","Communication always stops","DNS deletes the site","The server becomes local"], answer:0, why:"Alternate paths help keep communication working.", hint:"Redundancy improves reliability." },
+    { q:"Redundancy in networks helps to:", options:["Improve reliability","Remove IP addressing","Stop all email","Replace protocols"], answer:0, why:"Redundancy keeps services running even when links fail.", hint:"Backup paths." }
+  ],
+  https: [
+    { q:"HTTPS usually means:", options:["Encrypted/secure web communication","A smaller website","A DNS replacement","A faster LAN"], answer:0, why:"HTTPS indicates secure (encrypted) communication.", hint:"The 'S' is typically for Secure." },
+    { q:"A practical benefit of HTTPS is:", options:["Confidentiality and integrity of traffic","Shorter URLs","No need for DNS","No need for routers"], answer:0, why:"HTTPS protects data in transit using encryption.", hint:"Secure channel." }
   ],
   server: [
-    {
-      q: "IPv4 addresses are typically written in:",
-      options: ["Dot-decimal notation like 172.16.254.1", "Only hexadecimal with colons", "Only binary with spaces", "Only as domain names"],
-      answer: 0,
-      why: "IPv4 is commonly written as four numbers (0–255) separated by dots.",
-      hint: "Four octets separated by dots."
-    },
-    {
-      q: "A main reason IPv6 was introduced is:",
-      options: ["To replace HTML", "IPv4 address exhaustion", "To remove routers", "To eliminate DNS"],
-      answer: 1,
-      why: "IPv6 expanded address space because IPv4 addresses were running out.",
-      hint: "IPv6 uses a much larger address size than IPv4."
-    }
+    { q:"A server in this context is best described as:", options:["A device that provides resources/services","A DNS record","A URL component","A router setting"], answer:0, why:"Servers host resources or provide services to clients.", hint:"Client requests, server responds." },
+    { q:"A host name generally refers to:", options:["A specific machine in a domain/network","A protocol name","A web page file extension","A cable type"], answer:0, why:"Host name identifies a specific machine (host) in a domain.", hint:"Host = machine." }
+  ],
+  webapp: [
+    { q:"When you open a web page, what is being accessed?", options:["A resource hosted on a server","Only a DNS table","Only your browser cache","Only the ISP settings"], answer:0, why:"A web page is a resource delivered from a server to your browser.", hint:"Resource delivered over the route." },
+    { q:"A correct summary of the journey is:", options:["Name → IP → Route → Resource","IP → Name → Resource → Route","Route → Name → IP → ISP","Protocol removes the need for servers"], answer:0, why:"Typically: resolve name to IP, route packets, then fetch resource.", hint:"DNS before routing." }
   ]
 };
+
+// --- DOM ---
+const stepLine   = document.getElementById("stepLine");
+const qText      = document.getElementById("qText");
+const opts       = document.getElementById("opts");
+const submitBtn  = document.getElementById("submitBtn");
+const resetBtn   = document.getElementById("resetBtn");
+const fb         = document.getElementById("fb");
+const statusPill = document.getElementById("statusPill");
+const packetPill = document.getElementById("packetPill");
+const toast      = document.getElementById("toast");
+
+const packet      = document.getElementById("packet");
+const packetCircle= document.getElementById("packetCircle");
+const packetCore  = document.getElementById("packetCore");
+
+const nodeEls = [...Array(15)].map((_,i)=>document.getElementById("n"+i));
+const edgeEls = [...Array(14)].map((_,i)=>document.getElementById("e"+i)).filter(Boolean);
+const altEdges = [...Array(3)].map((_,i)=>document.getElementById("a"+i)).filter(Boolean);
+
+// Node coordinates (match SVG)
+const P = [
+  {x:70,y:280},   //0
+  {x:190,y:280},  //1
+  {x:310,y:280},  //2
+  {x:440,y:220},  //3
+  {x:570,y:220},  //4
+  {x:690,y:280},  //5
+  {x:720,y:372},  //6
+  {x:600,y:395},  //7
+  {x:520,y:332},  //8
+  {x:460,y:268},  //9
+  {x:610,y:268},  //10
+  {x:760,y:298},  //11
+  {x:870,y:260},  //12
+  {x:900,y:190},  //13
+  {x:790,y:170}   //14
+];
+
+// Packet travels across the step nodes in order
+const PACKET_PATH = STEPS.map(s => P[s.node]);
 
 // --- State ---
 let stepIndex = 0;
@@ -499,43 +507,7 @@ let attempts = Array(STEPS.length).fill(0);
 let usedByStep = STEPS.map(() => new Set());
 let packetsDelivered = 0;
 
-// --- DOM ---
-const stepLine = document.getElementById("stepLine");
-const qText = document.getElementById("qText");
-const opts = document.getElementById("opts");
-const submitBtn = document.getElementById("submitBtn");
-const resetBtn = document.getElementById("resetBtn");
-const fb = document.getElementById("fb");
-const statusPill = document.getElementById("statusPill");
-const packetPill = document.getElementById("packetPill");
-
-const packet = document.getElementById("packet");
-const packetCircle = document.getElementById("packetCircle");
-const packetCore = document.getElementById("packetCore");
-
-const toast = document.getElementById("toast");
-
-// main edges e0..e5
-const edgeEls = [...Array(6)].map((_,i)=>document.getElementById("e"+i)).filter(Boolean);
-// alt edges a0..a2
-const altEdges = [...Array(3)].map((_,i)=>document.getElementById("a"+i)).filter(Boolean);
-
-const nodeEls = [...Array(6)].map((_,i)=>document.getElementById("n"+i));
-
-// Node coordinates (match SVG)
-const P = [
-  {x:120,y:260}, // user
-  {x:300,y:260}, // isp
-  {x:480,y:190}, // dns
-  {x:690,y:190}, // router
-  {x:650,y:320}, // web
-  {x:800,y:260}  // server
-];
-
-// Preferred route for final packet animation
-const PACKET_PATH = [ P[0], P[1], P[2], P[3], P[5] ];
-
-// --- Helpers ---
+// --- helpers ---
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){
@@ -544,7 +516,6 @@ function shuffle(arr){
   }
   return a;
 }
-
 function pickQuestionForStep(stepKey, stepIdx){
   const pool = BANK[stepKey] || [];
   if(pool.length === 0) return null;
@@ -559,67 +530,54 @@ function pickQuestionForStep(stepKey, stepIdx){
   used.add(pick.i);
   return pick.q;
 }
-
+function clearFeedback(){
+  fb.style.display="none";
+  fb.textContent="";
+  fb.className="feedback";
+}
 function setFeedback(kind, title, body, hintText=null){
-  fb.style.display = "block";
-  fb.className = "feedback " + (kind === "ok" ? "ok" : (kind === "warn" ? "warn" : "bad"));
-  fb.innerHTML = `<b>${title}</b><div style="margin-top:6px">${body}</div>` +
+  fb.style.display="block";
+  fb.className="feedback " + (kind==="ok" ? "ok" : "bad");
+  fb.innerHTML =
+    `<b>${title}</b><div style="margin-top:6px">${body}</div>` +
     (hintText ? `<div class="hint"><b>Hint:</b> ${hintText}</div>` : "");
 }
-
-function clearFeedback(){
-  fb.style.display = "none";
-  fb.textContent = "";
-  fb.className = "feedback";
-}
-
 function showToast(msg){
   toast.textContent = msg;
   toast.classList.add("show");
   setTimeout(()=>toast.classList.remove("show"), 1200);
 }
-
+function flashAltRoute(){
+  showToast("Rerouting via backup path…");
+  altEdges.forEach(e=>e.classList.add("flash"));
+  setTimeout(()=>altEdges.forEach(e=>e.classList.remove("flash")), 1200);
+}
 function updateStats(){
-  statusPill.innerHTML = `<b>Route:</b> ${Math.min(stepIndex,6)}/6 nodes activated`;
+  statusPill.innerHTML = `<b>Route:</b> ${Math.min(stepIndex,15)}/15 nodes`;
   packetPill.innerHTML = `<b>Packets delivered:</b> ${packetsDelivered}/1`;
 }
-
 function updateBoard(){
-  nodeEls.forEach(n => n.classList.remove("active","done"));
-  edgeEls.forEach(e => e.classList.remove("on"));
+  nodeEls.forEach(n=>n.classList.remove("active","done"));
+  edgeEls.forEach(e=>e.classList.remove("on"));
 
-  // nodes done up to stepIndex-1
   for(let i=0;i<stepIndex;i++){
-    const doneNodes = STEPS[i].nodesDone;
-    doneNodes.forEach(idx => nodeEls[idx].classList.add("done"));
-    (STEPS[i].edgesOn || []).forEach(ei => edgeEls[ei]?.classList.add("on"));
+    nodeEls[STEPS[i].node].classList.add("done");
+    (STEPS[i].edgesOn||[]).forEach(ei => edgeEls[ei]?.classList.add("on"));
   }
-
-  // current active node highlight
   if(stepIndex < STEPS.length){
-    const activeNode = STEPS[stepIndex].nodesDone[0];
-    nodeEls[activeNode].classList.add("active");
+    nodeEls[STEPS[stepIndex].node].classList.add("active");
   }
-
   updateStats();
 }
-
-function flashAltRoute(){
-  // minimal “game feel”: show redundancy/alternate routing without extra rules
-  showToast("Rerouting via backup path…");
-  altEdges.forEach(e => e.classList.add("flash"));
-  setTimeout(()=> altEdges.forEach(e => e.classList.remove("flash")), 1200);
-}
-
 function renderQuestion(){
   clearFeedback();
-  selected = null;
-  submitBtn.disabled = true;
+  selected=null;
+  submitBtn.disabled=true;
 
   const s = STEPS[stepIndex];
   stepLine.textContent = `Step ${stepIndex+1} of ${STEPS.length} • ${s.label}`;
-  currentQ = pickQuestionForStep(s.key, stepIndex);
 
+  currentQ = pickQuestionForStep(s.key, stepIndex);
   if(!currentQ){
     qText.textContent = "No question available for this step.";
     opts.innerHTML = "";
@@ -628,33 +586,29 @@ function renderQuestion(){
 
   qText.textContent = currentQ.q;
 
-  // shuffle options while keeping correct mapping
+  // shuffle options but keep correct mapping
   const indexed = currentQ.options.map((txt, idx)=>({txt, idx}));
   const mixed = shuffle(indexed);
-  const correctOriginal = currentQ.answer;
-  const correctNewIndex = mixed.findIndex(x=>x.idx===correctOriginal);
+  const correctNewIndex = mixed.findIndex(x=>x.idx===currentQ.answer);
 
   currentQ._renderOptions = mixed.map(x=>x.txt);
   currentQ._renderAnswer = correctNewIndex;
 
-  opts.innerHTML = "";
+  opts.innerHTML="";
   currentQ._renderOptions.forEach((txt,i)=>{
     const d = document.createElement("div");
-    d.className = "opt";
-    d.textContent = txt;
+    d.className="opt";
+    d.textContent=txt;
     d.addEventListener("click", ()=>{
       [...opts.children].forEach(x=>x.classList.remove("sel"));
       d.classList.add("sel");
-      selected = i;
-      submitBtn.disabled = false;
+      selected=i;
+      submitBtn.disabled=false;
     });
     opts.appendChild(d);
   });
 }
-
 function completeStep(){
-  updateBoard();
-
   stepIndex++;
   if(stepIndex < STEPS.length){
     updateBoard();
@@ -664,30 +618,25 @@ function completeStep(){
     showFinish();
   }
 }
-
 function showFinish(){
   stepLine.textContent = "Route Complete";
-  qText.textContent = "Great. You built the route through understanding.";
-  opts.innerHTML = "";
-  submitBtn.style.display = "none";
-
-  setFeedback(
-    "ok",
-    "Goal achieved",
-    "Now a packet will travel across your completed route. This visible goal state makes it feel like a real game, while learning remains in control."
-  );
-
+  qText.textContent = "You built the route through understanding.";
+  opts.innerHTML="";
+  submitBtn.style.display="none";
+  setFeedback("ok","Goal achieved","A packet will now travel across your completed route (goal state).");
   animatePacket();
 }
-
 function animatePacket(){
-  packet.style.display = "block";
+  packet.style.display="block";
+  packetsDelivered = 0;
+  updateStats();
+
   packetCircle.setAttribute("cx", PACKET_PATH[0].x);
   packetCircle.setAttribute("cy", PACKET_PATH[0].y);
   packetCore.setAttribute("cx", PACKET_PATH[0].x);
   packetCore.setAttribute("cy", PACKET_PATH[0].y);
 
-  const speed = 280; // px/sec (slow and readable)
+  const speed = 260;
   let seg = 0;
   let t = 0;
   let last = performance.now();
@@ -695,12 +644,12 @@ function animatePacket(){
   function dist(a,b){ return Math.hypot(b.x-a.x, b.y-a.y); }
 
   function tick(now){
-    const dt = (now - last)/1000;
+    const dt = (now-last)/1000;
     last = now;
 
     const a = PACKET_PATH[seg];
     const b = PACKET_PATH[seg+1];
-    const d = dist(a,b);
+    const d = dist(a,b) || 1;
 
     t += (speed*dt)/d;
 
@@ -708,14 +657,12 @@ function animatePacket(){
       seg++;
       t = 0;
       if(seg >= PACKET_PATH.length-1){
-        // end
         const end = PACKET_PATH[PACKET_PATH.length-1];
         packetCircle.setAttribute("cx", end.x);
         packetCircle.setAttribute("cy", end.y);
         packetCore.setAttribute("cx", end.x);
         packetCore.setAttribute("cy", end.y);
 
-        // packet delivered (goal indicator)
         packetsDelivered = 1;
         updateStats();
         showToast("Packet delivered ✓");
@@ -723,8 +670,8 @@ function animatePacket(){
       }
     }
 
-    const x = a.x + (b.x - a.x)*t;
-    const y = a.y + (b.y - a.y)*t;
+    const x = a.x + (b.x-a.x)*t;
+    const y = a.y + (b.y-a.y)*t;
 
     packetCircle.setAttribute("cx", x);
     packetCircle.setAttribute("cy", y);
@@ -733,57 +680,52 @@ function animatePacket(){
 
     requestAnimationFrame(tick);
   }
-
   requestAnimationFrame(tick);
 }
 
-// --- Events ---
+// --- events ---
 submitBtn.addEventListener("click", ()=>{
-  if(selected === null || !currentQ) return;
+  if(selected===null || !currentQ) return;
 
   const correct = (selected === currentQ._renderAnswer);
   if(correct){
-    setFeedback("ok", "Correct", currentQ.why);
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Unlocked ✓";
+    setFeedback("ok","Correct", currentQ.why);
+    submitBtn.disabled=true;
+    submitBtn.textContent="Unlocked ✓";
 
-    // small delay to read feedback
     setTimeout(()=>{
-      submitBtn.textContent = "Submit";
-      submitBtn.disabled = false;
-      completeStep();
-    }, 900);
+      submitBtn.textContent="Submit";
+      submitBtn.disabled=false;
+
+      // visual lock-in before moving on
+      nodeEls[STEPS[stepIndex].node].classList.add("done");
+      (STEPS[stepIndex].edgesOn||[]).forEach(ei => edgeEls[ei]?.classList.add("on"));
+
+      setTimeout(()=> completeStep(), 260);
+    }, 650);
 
   }else{
     attempts[stepIndex] += 1;
-    const showHint = attempts[stepIndex] >= 2 ? currentQ.hint : null;
-
-    // show redundancy/alternate route visual (game layer)
+    const hint = attempts[stepIndex] >= 2 ? currentQ.hint : null;
     flashAltRoute();
-
-    setFeedback(
-      "bad",
-      "Not quite",
-      currentQ.why,
-      showHint
-    );
+    setFeedback("bad","Not quite", currentQ.why, hint);
   }
 });
 
 resetBtn.addEventListener("click", ()=>{
-  stepIndex = 0;
+  stepIndex=0;
   attempts = Array(STEPS.length).fill(0);
-  usedByStep = STEPS.map(() => new Set());
+  usedByStep = STEPS.map(()=>new Set());
   packetsDelivered = 0;
-  submitBtn.style.display = "block";
-  submitBtn.textContent = "Submit";
-  submitBtn.disabled = true;
-  packet.style.display = "none";
+  submitBtn.style.display="block";
+  submitBtn.textContent="Submit";
+  submitBtn.disabled=true;
+  packet.style.display="none";
   updateBoard();
   renderQuestion();
 });
 
-// --- Init ---
+// init
 updateBoard();
 renderQuestion();
 </script>
