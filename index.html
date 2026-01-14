@@ -55,6 +55,7 @@
     display:flex;
     flex-direction:column;
     gap:4px;
+    min-width: 260px;
   }
   .title h1{
     margin:0;
@@ -67,6 +68,15 @@
     font-size:13px;
     line-height:1.35;
   }
+
+  .stats{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+  }
+
   .pill{
     display:inline-flex;
     gap:8px;
@@ -106,6 +116,7 @@
   }
   .dot.active{ background: var(--primary); border-color: var(--primary); }
   .dot.done{ background: var(--ok); border-color: var(--ok); }
+  .dot.alt { background: #fff7ed; border-color: rgba(181,71,8,.5); }
 
   .panel{
     padding:14px;
@@ -174,6 +185,7 @@
   }
   .feedback.ok{ border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.07); }
   .feedback.bad{ border-color: rgba(180,35,24,.35); background: rgba(180,35,24,.06); }
+  .feedback.warn{ border-color: rgba(181,71,8,.35); background: rgba(181,71,8,.07); }
   .hint{
     margin-top:8px;
     color:#7a5c00;
@@ -191,6 +203,19 @@
   .edge.on{
     stroke: var(--ok);
   }
+  /* Alternate route edge (dashed) */
+  .edge.alt{
+    stroke: rgba(181,71,8,.55);
+    stroke-width: 5;
+    stroke-dasharray: 10 10;
+    opacity: .35;
+  }
+  .edge.alt.flash{
+    opacity: 1;
+    stroke: rgba(181,71,8,.95);
+    stroke-width: 6;
+  }
+
   .nodeCircle{
     fill:#fff;
     stroke: var(--line);
@@ -218,6 +243,27 @@
   .packet{
     filter: drop-shadow(0 6px 10px rgba(16,24,40,.18));
   }
+
+  /* tiny toast */
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    background: #101828;
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 12px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events:none;
+    transition: opacity .18s ease;
+    max-width: 92vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .toast.show{ opacity: .95; }
 </style>
 </head>
 <body>
@@ -230,19 +276,29 @@
           No timer. No penalties. Retry allowed.
         </p>
       </div>
-      <div class="pill" id="statusPill"><b>Route:</b> 0/6 nodes activated</div>
+
+      <div class="stats">
+        <div class="pill" id="statusPill"><b>Route:</b> 0/6 nodes activated</div>
+        <div class="pill" id="packetPill"><b>Packets delivered:</b> 0/1</div>
+      </div>
     </div>
 
     <div class="board">
-      <!-- Network Map -->
       <svg viewBox="0 0 900 520" aria-label="Internet route board">
-        <!-- edges -->
+        <!-- main edges -->
         <path id="e0" class="edge" d="M120,260 C210,260 220,260 300,260" />
         <path id="e1" class="edge" d="M300,260 C380,220 420,200 480,190" />
         <path id="e2" class="edge" d="M480,190 C560,170 610,170 690,190" />
         <path id="e3" class="edge" d="M690,190 C740,210 770,230 800,260" />
         <path id="e4" class="edge" d="M480,190 C520,260 570,300 650,320" />
         <path id="e5" class="edge" d="M650,320 C710,320 750,300 800,260" />
+
+        <!-- alternate route edges (dashed, used for "rerouting" visual) -->
+        <!-- alt1: ISP -> Router directly -->
+        <path id="a0" class="edge alt" d="M300,260 C420,300 540,290 690,190" />
+        <!-- alt2: DNS -> Web -> Server (already exists as main e4 + e5, but we show as alt highlight) -->
+        <path id="a1" class="edge alt" d="M480,190 C540,240 590,290 650,320" />
+        <path id="a2" class="edge alt" d="M650,320 C730,330 770,300 800,260" />
 
         <!-- nodes -->
         <g>
@@ -284,14 +340,14 @@
         <!-- packet -->
         <g id="packet" class="packet" style="display:none">
           <circle id="packetCircle" cx="120" cy="260" r="12" fill="#4f46e5"></circle>
-          <circle cx="120" cy="260" r="6" fill="#ffffff" opacity="0.9"></circle>
+          <circle id="packetCore" cx="120" cy="260" r="6" fill="#ffffff" opacity="0.9"></circle>
         </g>
       </svg>
 
       <div class="legend">
         <span><span class="dot active"></span>Current step</span>
         <span><span class="dot done"></span>Activated</span>
-        <span><span class="dot"></span>Locked</span>
+        <span><span class="dot alt"></span>Backup route (shows on error)</span>
       </div>
     </div>
 
@@ -309,12 +365,14 @@
     </div>
   </div>
 
+  <div id="toast" class="toast">Rerouting…</div>
+
 <script>
 /**
- * Build-the-Route GBL
- * - Low cognitive load: one board, one question, consistent interaction
- * - Progress = node activation + line turning green
- * - Hint appears after 2 wrong attempts on a step
+ * Build-the-Route GBL (Enhanced)
+ * Enhancements added:
+ * 1) Packet counter (0/1) — goal indicator, not a score.
+ * 2) Alternate-route visual on wrong answers — shows redundancy/rerouting concept.
  */
 
 const STEPS = [
@@ -326,7 +384,7 @@ const STEPS = [
   { key:"server", label:"IP versions + reaching server", nodesDone:[5], edgesOn:[3,5] }
 ];
 
-// Question bank (Chapter 1 aligned). Each step will draw one question randomly without repetition for that step.
+// Question bank (Chapter 1 aligned). Each step draws one question randomly without repetition per step.
 const BANK = {
   user: [
     {
@@ -439,6 +497,7 @@ let currentQ = null;
 let selected = null;
 let attempts = Array(STEPS.length).fill(0);
 let usedByStep = STEPS.map(() => new Set());
+let packetsDelivered = 0;
 
 // --- DOM ---
 const stepLine = document.getElementById("stepLine");
@@ -448,14 +507,22 @@ const submitBtn = document.getElementById("submitBtn");
 const resetBtn = document.getElementById("resetBtn");
 const fb = document.getElementById("fb");
 const statusPill = document.getElementById("statusPill");
+const packetPill = document.getElementById("packetPill");
 
 const packet = document.getElementById("packet");
 const packetCircle = document.getElementById("packetCircle");
+const packetCore = document.getElementById("packetCore");
+
+const toast = document.getElementById("toast");
+
+// main edges e0..e5
+const edgeEls = [...Array(6)].map((_,i)=>document.getElementById("e"+i)).filter(Boolean);
+// alt edges a0..a2
+const altEdges = [...Array(3)].map((_,i)=>document.getElementById("a"+i)).filter(Boolean);
 
 const nodeEls = [...Array(6)].map((_,i)=>document.getElementById("n"+i));
-const edgeEls = [...Array(6)].map((_,i)=>document.getElementById("e"+i)).filter(Boolean);
 
-// Node coordinates (must match SVG)
+// Node coordinates (match SVG)
 const P = [
   {x:120,y:260}, // user
   {x:300,y:260}, // isp
@@ -465,10 +532,8 @@ const P = [
   {x:800,y:260}  // server
 ];
 
-// Route for final packet animation (a nice “goal state”)
-const PACKET_PATH = [
-  P[0], P[1], P[2], P[3], P[5] // user->isp->dns->router->server
-];
+// Preferred route for final packet animation
+const PACKET_PATH = [ P[0], P[1], P[2], P[3], P[5] ];
 
 // --- Helpers ---
 function shuffle(arr){
@@ -484,7 +549,6 @@ function pickQuestionForStep(stepKey, stepIdx){
   const pool = BANK[stepKey] || [];
   if(pool.length === 0) return null;
 
-  // avoid repetition within the same step until pool exhausted
   const used = usedByStep[stepIdx];
   let candidates = pool.map((q,i)=>({q,i})).filter(x=>!used.has(x.i));
   if(candidates.length === 0){
@@ -498,7 +562,7 @@ function pickQuestionForStep(stepKey, stepIdx){
 
 function setFeedback(kind, title, body, hintText=null){
   fb.style.display = "block";
-  fb.className = "feedback " + (kind === "ok" ? "ok" : "bad");
+  fb.className = "feedback " + (kind === "ok" ? "ok" : (kind === "warn" ? "warn" : "bad"));
   fb.innerHTML = `<b>${title}</b><div style="margin-top:6px">${body}</div>` +
     (hintText ? `<div class="hint"><b>Hint:</b> ${hintText}</div>` : "");
 }
@@ -509,8 +573,18 @@ function clearFeedback(){
   fb.className = "feedback";
 }
 
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"), 1200);
+}
+
+function updateStats(){
+  statusPill.innerHTML = `<b>Route:</b> ${Math.min(stepIndex,6)}/6 nodes activated`;
+  packetPill.innerHTML = `<b>Packets delivered:</b> ${packetsDelivered}/1`;
+}
+
 function updateBoard(){
-  // mark nodes
   nodeEls.forEach(n => n.classList.remove("active","done"));
   edgeEls.forEach(e => e.classList.remove("on"));
 
@@ -518,7 +592,7 @@ function updateBoard(){
   for(let i=0;i<stepIndex;i++){
     const doneNodes = STEPS[i].nodesDone;
     doneNodes.forEach(idx => nodeEls[idx].classList.add("done"));
-    (STEPS[i].edgesOn || []).forEach(ei => edgeEls[ei].classList.add("on"));
+    (STEPS[i].edgesOn || []).forEach(ei => edgeEls[ei]?.classList.add("on"));
   }
 
   // current active node highlight
@@ -527,7 +601,14 @@ function updateBoard(){
     nodeEls[activeNode].classList.add("active");
   }
 
-  statusPill.innerHTML = `<b>Route:</b> ${Math.min(stepIndex,6)}/6 nodes activated`;
+  updateStats();
+}
+
+function flashAltRoute(){
+  // minimal “game feel”: show redundancy/alternate routing without extra rules
+  showToast("Rerouting via backup path…");
+  altEdges.forEach(e => e.classList.add("flash"));
+  setTimeout(()=> altEdges.forEach(e => e.classList.remove("flash")), 1200);
 }
 
 function renderQuestion(){
@@ -547,13 +628,12 @@ function renderQuestion(){
 
   qText.textContent = currentQ.q;
 
-  // shuffle options while keeping correct index
+  // shuffle options while keeping correct mapping
   const indexed = currentQ.options.map((txt, idx)=>({txt, idx}));
   const mixed = shuffle(indexed);
   const correctOriginal = currentQ.answer;
   const correctNewIndex = mixed.findIndex(x=>x.idx===correctOriginal);
 
-  // store remapped answer for this render
   currentQ._renderOptions = mixed.map(x=>x.txt);
   currentQ._renderAnswer = correctNewIndex;
 
@@ -573,16 +653,13 @@ function renderQuestion(){
 }
 
 function completeStep(){
-  // Activate board elements for this step
   updateBoard();
 
-  // move to next
   stepIndex++;
   if(stepIndex < STEPS.length){
     updateBoard();
     renderQuestion();
   }else{
-    // finished
     updateBoard();
     showFinish();
   }
@@ -597,7 +674,7 @@ function showFinish(){
   setFeedback(
     "ok",
     "Goal achieved",
-    "A packet will now travel across your completed route. This visible goal state is what makes it feel like a game, while learning remains in control."
+    "Now a packet will travel across your completed route. This visible goal state makes it feel like a real game, while learning remains in control."
   );
 
   animatePacket();
@@ -607,13 +684,10 @@ function animatePacket(){
   packet.style.display = "block";
   packetCircle.setAttribute("cx", PACKET_PATH[0].x);
   packetCircle.setAttribute("cy", PACKET_PATH[0].y);
+  packetCore.setAttribute("cx", PACKET_PATH[0].x);
+  packetCore.setAttribute("cy", PACKET_PATH[0].y);
 
-  const inner = packet.querySelector("circle:nth-child(2)");
-  inner.setAttribute("cx", PACKET_PATH[0].x);
-  inner.setAttribute("cy", PACKET_PATH[0].y);
-
-  // interpolate across segments
-  const speed = 280; // px per second (slow, readable)
+  const speed = 280; // px/sec (slow and readable)
   let seg = 0;
   let t = 0;
   let last = performance.now();
@@ -627,7 +701,6 @@ function animatePacket(){
     const a = PACKET_PATH[seg];
     const b = PACKET_PATH[seg+1];
     const d = dist(a,b);
-    if(d === 0){ seg++; t=0; }
 
     t += (speed*dt)/d;
 
@@ -635,11 +708,17 @@ function animatePacket(){
       seg++;
       t = 0;
       if(seg >= PACKET_PATH.length-1){
-        // done
-        packetCircle.setAttribute("cx", PACKET_PATH[PACKET_PATH.length-1].x);
-        packetCircle.setAttribute("cy", PACKET_PATH[PACKET_PATH.length-1].y);
-        inner.setAttribute("cx", PACKET_PATH[PACKET_PATH.length-1].x);
-        inner.setAttribute("cy", PACKET_PATH[PACKET_PATH.length-1].y);
+        // end
+        const end = PACKET_PATH[PACKET_PATH.length-1];
+        packetCircle.setAttribute("cx", end.x);
+        packetCircle.setAttribute("cy", end.y);
+        packetCore.setAttribute("cx", end.x);
+        packetCore.setAttribute("cy", end.y);
+
+        // packet delivered (goal indicator)
+        packetsDelivered = 1;
+        updateStats();
+        showToast("Packet delivered ✓");
         return;
       }
     }
@@ -649,8 +728,8 @@ function animatePacket(){
 
     packetCircle.setAttribute("cx", x);
     packetCircle.setAttribute("cy", y);
-    inner.setAttribute("cx", x);
-    inner.setAttribute("cy", y);
+    packetCore.setAttribute("cx", x);
+    packetCore.setAttribute("cy", y);
 
     requestAnimationFrame(tick);
   }
@@ -667,16 +746,27 @@ submitBtn.addEventListener("click", ()=>{
     setFeedback("ok", "Correct", currentQ.why);
     submitBtn.disabled = true;
     submitBtn.textContent = "Unlocked ✓";
-    // small delay to let learner read feedback
+
+    // small delay to read feedback
     setTimeout(()=>{
       submitBtn.textContent = "Submit";
       submitBtn.disabled = false;
       completeStep();
     }, 900);
+
   }else{
     attempts[stepIndex] += 1;
     const showHint = attempts[stepIndex] >= 2 ? currentQ.hint : null;
-    setFeedback("bad", "Not quite", currentQ.why, showHint);
+
+    // show redundancy/alternate route visual (game layer)
+    flashAltRoute();
+
+    setFeedback(
+      "bad",
+      "Not quite",
+      currentQ.why,
+      showHint
+    );
   }
 });
 
@@ -684,6 +774,7 @@ resetBtn.addEventListener("click", ()=>{
   stepIndex = 0;
   attempts = Array(STEPS.length).fill(0);
   usedByStep = STEPS.map(() => new Set());
+  packetsDelivered = 0;
   submitBtn.style.display = "block";
   submitBtn.textContent = "Submit";
   submitBtn.disabled = true;
